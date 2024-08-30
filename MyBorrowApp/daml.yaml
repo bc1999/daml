@@ -1,0 +1,18 @@
+sdk-version: 2.9.3
+name: MyBorrowApp
+source: daml
+init-script: Main:setup
+parties:
+  - Jerry
+  - Elaine
+  - Kramer
+version: 0.0.1
+dependencies:
+  - daml-prim
+  - daml-stdlib
+  - daml-script
+
+sandbox-options:
+  - --wall-clock-time
+
+# Error: Unknown option --wall-clock-time
