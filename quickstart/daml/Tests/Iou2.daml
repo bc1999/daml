@@ -1,0 +1,68 @@
+-- Copyright (c) 2024 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+{-# LANGUAGE ApplicativeDo #-}
+
+module Tests.Iou2 where
+
+import DA.Assert
+import Daml.Script
+
+import Iou
+
+iou_test = do
+  bank <- allocateParty "Acme Bank"
+  alice <- allocateParty "Alice"
+  bob <- allocateParty "Bob"
+  charlie <- allocateParty "Charlie"
+
+  let
+    issuer = bank
+    currency = "USD"
+
+  -- Bank creates IOU transfers for Alice and Bob.
+  iouTransferAliceCid <- submit bank $
+    createAndExerciseCmd
+      Iou with
+        issuer
+        owner = issuer
+        currency
+        amount = 100.0
+        observers = []
+      Iou_Transfer with
+        newOwner = alice
+
+  iouTransferBobCid <- submit bank do
+    createAndExerciseCmd
+      Iou with
+        issuer
+        owner = issuer
+        currency
+        amount = 30.0
+        observers = []
+      Iou_Transfer with
+        newOwner = bob
+
+  iouAliceCid <- submit alice do
+    exerciseCmd iouTransferAliceCid IouTransfer_Accept
+
+  -- iouBobCid <- submit bob do
+  submit bob do
+    exerciseCmd iouTransferBobCid IouTransfer_Accept
+
+  
+
+  -- Issuers can archive IOUs they own.
+  -- iouBankCid <- submit bank do
+  --   createCmd Iou with
+  --     issuer = bank
+  --     owner = bank
+  --     currency = "USD"
+  --     amount = 100.0
+  --     observers = []
+
+  -- submit bank do exerciseCmd iouBankCid Archive
+  -- optIou <- queryContractId bank iouBankCid
+  -- optIou === None
+
+  
